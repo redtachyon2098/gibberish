@@ -1,23 +1,22 @@
+#This is a simple text generating program that uses a Markov Chain on "blocks" of characters, and generates new text using it.
+#_________________________________________SETTINGS______________________________________________
+inputpath = "../Desktop/example.txt"     #What file should it look at?
+outputpath = "../Desktop/NEW_STUFF.txt"   #Where should it output to?
+backlength = 3        #How many past "blocks" should it look at for context?
+outputlength = 50000     #How long should the generated text be?
+timeLimit = 0      #The program automatically stops after *timeLimit* minutes. Set it to 0 to disable.
+alertrate = 5      #The program prints its status every *alertrate* seconds.
+
+def breaklogic(x): #The input is a character. This is used to break up the string into "blocks" for the Markov Chain to use.
+    #Examples:
+    #return True #Separate individual characters
+    return x in ["\n", " "] #Separate by words
+    #return x in [".",",","?","!",";",":","(",")","\n","\t","\r","[","]",'"',"'"] #Separate by phrases?
+#_______________________________________END OF SETTINGS___________________________________________
+    
 import time as t
 
 import random as r
-
-inputpath = "../Desktop/old_censored.txt"
-
-outputpath = "../Desktop/NEW_STUFF.txt"
-
-backlength = 3
-
-outputlength = 50000
-
-timeLimit = 0
-
-alertrate = 5
-
-def breaklogic(x):
-    #return True #characters
-    return x in ["\n", " "] #words
-    #return x in [".",",","?","!",";",":","(",")","\n","\t","\r","[","]",'"',"'"] #phrases?
 
 class chain:
     def __init__(self):
@@ -29,7 +28,7 @@ class chain:
         try:
             self.current = self.states.index(state)
         except ValueError:
-            print("nope!")
+            WellCrap = True
 
     def iterate(self):
         if len(self.states) > 0:
@@ -39,7 +38,6 @@ class chain:
             level = 0
             nextstate = 0
             if total == 0:
-                print("wait, what?")
                 self.current = r.randint(0, len(self.states) - 1)
             else:
                 for x in range(len(distribution)):
@@ -69,7 +67,7 @@ class chain:
         self.structure.append(new)
         self.states.append(state)
         
-author = chain()
+author = chain() #Very funny, I know.
 
 file = open(inputpath, "r")
 
