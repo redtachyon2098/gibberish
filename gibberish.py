@@ -1,0 +1,137 @@
+import time as t
+
+import random as r
+
+inputpath = "../Desktop/old_censored.txt"
+
+outputpath = "../Desktop/NEW_STUFF.txt"
+
+backlength = 3
+
+outputlength = 50000
+
+timeLimit = 0
+
+alertrate = 5
+
+def breaklogic(x):
+    #return True #characters
+    return x in ["\n", " "] #words
+    #return x in [".",",","?","!",";",":","(",")","\n","\t","\r","[","]",'"',"'"] #phrases?
+
+class chain:
+    def __init__(self):
+        self.structure = []
+        self.current = 0
+        self.states = []
+
+    def setstate(self, state):
+        try:
+            self.current = self.states.index(state)
+        except ValueError:
+            print("nope!")
+
+    def iterate(self):
+        if len(self.states) > 0:
+            distribution = self.structure[self.current]
+            total = sum(self.structure[self.current])
+            guess = r.random()
+            level = 0
+            nextstate = 0
+            if total == 0:
+                print("wait, what?")
+                self.current = r.randint(0, len(self.states) - 1)
+            else:
+                for x in range(len(distribution)):
+                    level += distribution[x] / total
+                    if guess < level:
+                        nextstate = x
+                        break
+                self.current = nextstate
+        else:
+            print("chain is empty!")
+
+    def store(self, nextstate):
+        try:
+            statenumber = self.states.index(nextstate)
+            self.structure[self.current][statenumber] += 1
+        except ValueError:
+            self.add(nextstate)
+            self.store(nextstate)
+
+    def add(self, state):
+        length = len(self.structure)
+        for x in range(length):
+            self.structure[x].append(0)
+        new = []
+        for x in range(length + 1):
+            new.append(0)
+        self.structure.append(new)
+        self.states.append(state)
+        
+author = chain()
+
+file = open(inputpath, "r")
+
+source = file.read()
+
+file.close()
+
+length = len(source)
+
+point = []
+
+location = 0
+
+for x in range(backlength):
+    block = ""
+    while True:
+        block += source[location % length]
+        location += 1
+        if breaklogic(source[location % length]):
+            break
+    point.append(block)
+
+try:
+    print("storing...")
+    clock = t.time()
+    start = t.time()
+    while location < length and (((t.time() - start) / 60 < timeLimit) or timeLimit == 0):
+        author.setstate(point)
+        block = ""
+        while True:
+            block += source[location % length]
+            location += 1
+            if breaklogic(source[(location - 1) % length]):
+                break
+        point = point[1:] + [block]
+        author.store(point)
+        if t.time() - clock >= alertrate:
+            print("Stored " + str(location) + " characters, contains " + str(len(author.structure)) + " unique blocks.")
+            clock = t.time()
+except KeyboardInterrupt:
+    print("terminated.")
+
+print("generating...")
+
+author.current = r.randint(0, len(author.states) - 1)
+
+out = ""
+
+clock = t.time()
+
+try:
+    for x in range(outputlength):
+        author.iterate()
+        out += author.states[author.current][0]
+        if t.time() - clock >= alertrate:
+            print("Generated " + str(x) + " blocks.")
+            clock = t.time()
+except KeyboardInterrupt:
+    print("terminated.")
+
+file = open(outputpath, "w")
+
+file.write(out)
+
+file.close()
